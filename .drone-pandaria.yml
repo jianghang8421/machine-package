@@ -1,0 +1,73 @@
+kind: pipeline
+name: amd64
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build
+    pull: default
+    image: rancher/dapper:v0.4.1
+    commands:
+      - dapper ci
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+
+  - name: github_binary_release
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: github_token
+      files:
+      - "dist/artifacts/*"
+    when:
+      ref:
+      - refs/head/master
+      - refs/tags/*
+      event:
+      - tag
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+node:
+  instance: agent-amd64
+---
+kind: pipeline
+name: arm64
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+  - name: build
+    pull: default
+    image: rancher/dapper:v0.4.1
+    commands:
+      - dapper ci
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+
+  - name: github_binary_release
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: github_token
+      files:
+      - "dist/artifacts/*"
+    when:
+      ref:
+      - refs/head/master
+      - refs/tags/*
+      event:
+      - tag
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+node:
+  instance: agent-arm64
